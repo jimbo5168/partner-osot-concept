@@ -531,16 +531,14 @@
       if (visible) { if (!timer && !arming) { arming = true; setTimeout(() => { arming = false; if (visible && !hold) go(i + 1); start(); }, 900); } } else { stop(); timer = 0; }
     }), { threshold: [0, 0.25, 0.5] });
     vis.observe(wrap);
-    wrap.addEventListener('pointerenter', () => { hold = true; stop(); });
-    wrap.addEventListener('pointerleave', () => { hold = false; start(); });
     const nav = document.createElement('div'); nav.className = 'r4-nav';
     nav.innerHTML = '<button type="button" aria-label="Previous stage">&#8592;</button><span>Plays by itself · drag or use the arrows</span><button type="button" aria-label="Next stage">&#8594;</button>';
     wrap.appendChild(nav);
     const [prevB, nextB] = nav.querySelectorAll('button');
-    prevB.addEventListener('click', () => go(i - 1, 0.8)); nextB.addEventListener('click', () => go(i + 1, 0.8));
+    prevB.addEventListener('click', () => { go(i - 1, 0.8); start(); }); nextB.addEventListener('click', () => { go(i + 1, 0.8); start(); });
     const drag = Draggable.create(track, { type: 'x', bounds: { minX: -maxX(), maxX: 0 }, edgeResistance: 0.85, cursor: 'grab', activeCursor: 'grabbing',
       onPress: () => { hold = true; stop(); },
-      onRelease() { const st = stops(), x = -this.x; let best = 0; st.forEach((v, k) => { if (Math.abs(v - x) < Math.abs(st[best] - x)) best = k; }); go(best, 0.6); hold = false; },
+      onRelease() { const st = stops(), x = -this.x; let best = 0; st.forEach((v, k) => { if (Math.abs(v - x) < Math.abs(st[best] - x)) best = k; }); go(best, 0.6); hold = false; start(); },
       onDragStart: () => { drag[0].applyBounds({ minX: -maxX(), maxX: 0 }); } });
     const onResize = () => { drag[0].applyBounds({ minX: -maxX(), maxX: 0 }); go(i, 0.3); };
     addEventListener('resize', onResize);
