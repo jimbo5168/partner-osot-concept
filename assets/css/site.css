@@ -438,11 +438,11 @@ body.is-in .spotlight{animation:spotlight 2.2s var(--ease-out) .5s forwards}
 }
 
 /* Opening story: typed text in sync with the narration */
-.story{position:relative;z-index:5;max-width:760px;padding:0 var(--gutter);text-align:left}
+.story{position:relative;z-index:5;width:min(780px,100vw);box-sizing:border-box;padding:0 var(--gutter);text-align:left}
 .story[hidden]{display:none}
 .story__kicker{margin:0 0 var(--s4);font-size:var(--t-xs);letter-spacing:.08em;text-transform:uppercase;color:var(--amber-2)}
 .story__text{margin:0;min-height:7.2em;font:500 clamp(1.25rem,.9rem + 1.6vw,2.05rem)/1.4 var(--f-display);letter-spacing:-.01em;color:var(--text)}
-.story__text .w{opacity:0;filter:blur(6px);transition:opacity .28s ease,filter .28s ease}
+.story__text .w{white-space:nowrap;opacity:0;filter:blur(6px);transition:opacity .28s ease,filter .28s ease}
 .story__text .w.on{opacity:1;filter:none}
 .story__text .w.hl{color:var(--amber-2)}
 .story__text .caret{display:inline-block;width:.08em;height:1em;margin-left:.08em;vertical-align:-.12em;background:var(--amber);animation:blink 1s steps(1) infinite}
