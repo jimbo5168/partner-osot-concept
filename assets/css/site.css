@@ -455,3 +455,6 @@ body.is-in .spotlight{animation:spotlight 2.2s var(--ease-out) .5s forwards}
 .story__skip:hover{color:var(--text);border-color:var(--text)}
 .rec.is-hero{color:var(--amber-2);border-color:rgba(245,165,36,.6);background:rgba(245,165,36,.1);z-index:3}
 @media (prefers-reduced-motion: reduce){.story__text .w{transition:none}.story__text .caret{animation:none}.story__id{transition:none}}
+
+/* Requirement 5 gets the same room as the others before Why Jim */
+#r5{min-height:100vh;padding-bottom:calc(var(--s9) * 2)}

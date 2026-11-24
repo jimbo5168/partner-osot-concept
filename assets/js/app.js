@@ -24,7 +24,7 @@
   function armCounts(root = document) {
     $$('[data-count]', root).forEach(el => {
       if (el.closest('.intro')) return;
-      ScrollTrigger.create({ trigger: el, start: 'top 92%', once: true, onEnter: () => countUp(el) });
+      onSeen(el, () => countUp(el));
     });
   }
 
@@ -255,18 +255,36 @@
     gsap.from(split.chars, { yPercent: 60, opacity: 0, filter: 'blur(8px)', stagger: 0.018, duration: 0.9, ease: 'expo.out' });
     gsap.from(['.label-pill', '.hero__lede', '.hero__stats .stat', '.btn-uv', '.beam-stage'], { y: 24, opacity: 0, stagger: 0.08, delay: 0.3, duration: 0.9, clearProps: 'transform' });
   }
+  // Reveals use IntersectionObserver on the element's real on-screen box, so they fire the moment a card
+  // is in view, whatever pins or horizontal tracks moved it. A safety net shows anything still hidden.
+  const seenIO = 'IntersectionObserver' in window ? new IntersectionObserver(es => es.forEach(e => {
+    if (!e.isIntersecting) return; seenIO.unobserve(e.target); const fn = e.target.__onSeen; e.target.__onSeen = null; fn && fn();
+  }), { threshold: 0.08 }) : null;
+  function onSeen(el, fn) { if (!seenIO) return fn(); el.__onSeen = fn; seenIO.observe(el); }
   if (!RM) {
     $$('.req__title.split').forEach(t => {
       const s = new SplitText(t, { type: 'lines,words', mask: 'lines' });
-      gsap.from(s.words, { yPercent: 110, stagger: 0.025, duration: 0.9, ease: 'expo.out', scrollTrigger: { trigger: t, start: 'top 85%' } });
+      const tw = gsap.from(s.words, { yPercent: 110, stagger: 0.02, duration: 0.7, ease: 'expo.out', paused: true });
+      onSeen(t, () => tw.play());
     });
-    $$('.req__tag, .req__jd').forEach(el => gsap.from(el, { y: 18, opacity: 0, scrollTrigger: { trigger: el, start: 'top 90%' } }));
-    ScrollTrigger.batch('.req .card-fx, .why .card-fx', {
-      start: 'top 90%', once: true,
-      onEnter: b => gsap.fromTo(b, { '--ty': '48px', opacity: 0 }, { '--ty': '0px', opacity: 1, stagger: 0.08, duration: 0.9, ease: 'expo.out' })
-    });
-    gsap.set('.req .card-fx, .why .card-fx', { opacity: 0, '--ty': '48px' });
-    // re-check above-fold batches after refresh
+    $$('.req__tag, .req__jd').forEach(el => { const tw = gsap.from(el, { y: 18, opacity: 0, duration: 0.5, paused: true }); onSeen(el, () => tw.play()); });
+    const cards = $$('.req .card-fx, .why .card-fx').filter(el => !el.classList.contains('stage'));
+    gsap.set(cards, { opacity: 0, '--ty': '40px' });
+    cards.forEach((el, i) => onSeen(el, () => gsap.to(el, { '--ty': '0px', opacity: 1, duration: 0.6, delay: (i % 3) * 0.06, ease: 'expo.out' })));
+    // safety net: nothing in view stays invisible for more than about half a second
+    const watch = '.card-fx, .stage h3, .stage p, .stage li, .stage .chips, .stage .phase, .req__tag, .req__jd, .chip';
+    setInterval(() => {
+      if (document.body.classList.contains('is-intro')) return;
+      const now = performance.now();
+      $$(watch).forEach(el => {
+        const r = el.getBoundingClientRect();
+        const inView = r.width && r.bottom > 0 && r.top < innerHeight && r.right > 0 && r.left < innerWidth;
+        if (!inView) { el.__hidSince = 0; return; }
+        if (parseFloat(getComputedStyle(el).opacity) > 0.6) { el.__hidSince = 0; return; }
+        if (!el.__hidSince) { el.__hidSince = now; return; }
+        if (now - el.__hidSince > 450) { el.__hidSince = 0; gsap.to(el, el.classList.contains('card-fx') ? { opacity: 1, '--ty': '0px', duration: 0.3, overwrite: 'auto' } : { opacity: 1, y: 0, scale: 1, duration: 0.3, overwrite: 'auto' }); }
+      });
+    }, 200);
   }
   armCounts();
 
@@ -501,8 +519,8 @@
     const track = $('#r4track');
     const dist = () => track.scrollWidth - innerWidth + 40;
     const tw = gsap.to(track, { x: () => -dist(), ease: 'none', scrollTrigger: { trigger: '#r4pin', start: 'top top', end: () => '+=' + dist(), pin: true, scrub: 0.8, invalidateOnRefresh: true, anticipatePin: 1,
-      onUpdate: s => { if (s.progress > 0.85) phaseFill(); } } });
-    $$('.stage').forEach(st => gsap.from(st.querySelectorAll('h3, p, li, .chips, .phase'), { y: 30, opacity: 0, stagger: 0.05, scrollTrigger: { trigger: st, containerAnimation: tw, start: 'left 85%' } }));
+      onUpdate: s => { if (s.progress > 0.7) phaseFill(); } } });
+    $$('.stage').forEach(st => { const a = gsap.from(st.querySelectorAll('h3, p, li, .chips, .phase'), { y: 24, opacity: 0, stagger: 0.04, duration: 0.5, paused: true }); onSeen(st, () => a.play()); });
     return () => {};
   });
   mm.add('(max-width: 760px), (prefers-reduced-motion: reduce)', () => {
