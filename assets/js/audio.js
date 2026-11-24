@@ -1,9 +1,9 @@
 /* Sound for the Partner OSOT concept.
    Ambient music is synthesized live with the Web Audio API (no audio files).
-   Narration uses the browser's speechSynthesis. Both start only after a click. */
+   Narration is pre-recorded (Gemini TTS, warm female voice "Leda"). Both start only after a click. */
 (function () {
   const Sound = { musicOn: false, voiceOn: false, ctx: null, master: null, started: false };
-  let chordTimer = null, voices = [], spoken = new Set();
+  let chordTimer = null, spoken = new Set();
 
   // A minor 9 -> F maj7 -> C add9 -> G sus  (calm, unresolved, "data hum")
   const CHORDS = [
@@ -79,32 +79,36 @@
     setTimeout(() => { if (!Sound.musicOn) { clearInterval(chordTimer); chordTimer = null; Sound.ctx.suspend(); } }, 700);
   }
 
-  function pickVoice() {
-    if (!('speechSynthesis' in window)) return null;
-    voices = speechSynthesis.getVoices();
-    const pref = ['Samantha', 'Google US English', 'Microsoft Aria', 'Alex', 'Daniel'];
-    for (const p of pref) { const v = voices.find(v => v.name.includes(p)); if (v) return v; }
-    return voices.find(v => /^en(-|_)US/i.test(v.lang)) || voices.find(v => /^en/i.test(v.lang)) || null;
+  // Narration: pre-recorded clips in a warm female voice (Gemini TTS, prebuilt voice "Leda"),
+  // keyed by section. Plays only after a click, ducks the music, one clip at a time.
+  const CLIPS = ['story', 'intro', 'r1', 'r2', 'r3', 'r4', 'r5', 'why'];
+  const cache = {}; let cur = null;
+  function clip(key) {
+    if (!CLIPS.includes(key)) return null;
+    if (!cache[key]) { const a = new Audio('assets/audio/' + key + '.mp3'); a.preload = 'auto'; cache[key] = a; }
+    return cache[key];
   }
-  if ('speechSynthesis' in window) speechSynthesis.onvoiceschanged = () => { voices = speechSynthesis.getVoices(); };
-
-  function say(text, key) {
-    if (!Sound.voiceOn || !('speechSynthesis' in window)) return;
-    if (key) { if (spoken.has(key)) return; spoken.add(key); }
-    speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(text);
-    const v = pickVoice(); if (v) u.voice = v;
-    u.rate = 0.98; u.pitch = 1; u.volume = 1;
-    // duck the music under the voice
-    if (Sound.musicOn && Sound.ctx) {
-      const g = Sound.master.gain, t = Sound.ctx.currentTime;
-      g.cancelScheduledValues(t); g.setValueAtTime(g.value, t); g.linearRampToValueAtTime(0.35, t + 0.4);
-      u.onend = () => { if (!Sound.musicOn) return; const t2 = Sound.ctx.currentTime; g.cancelScheduledValues(t2); g.setValueAtTime(g.value, t2); g.linearRampToValueAtTime(0.9, t2 + 1.2); };
-    }
-    speechSynthesis.speak(u);
+  function duck(on) {
+    if (!Sound.musicOn || !Sound.ctx) return;
+    const g = Sound.master.gain, t = Sound.ctx.currentTime;
+    g.cancelScheduledValues(t); g.setValueAtTime(g.value, t);
+    g.linearRampToValueAtTime(on ? 0.3 : 0.9, t + (on ? 0.4 : 1.2));
   }
-  function startVoice() { Sound.voiceOn = 'speechSynthesis' in window; sync(); }
-  function stopVoice() { Sound.voiceOn = false; if ('speechSynthesis' in window) speechSynthesis.cancel(); sync(); }
+  function stopClip() { if (cur) { cur.pause(); cur.onended = null; cur = null; duck(false); } }
+  // say(text, key, force): text is the on-page transcript; the key picks the recorded clip.
+  function say(text, key, force) {
+    if (!Sound.voiceOn || !key) return null;
+    if (spoken.has(key) && !force) return null;
+    const a = clip(key); if (!a) return null;
+    spoken.add(key);
+    if (cur && cur !== a) { cur.pause(); cur.onended = null; }
+    cur = a; a.currentTime = 0; a.volume = 1; duck(true);
+    a.onended = () => { if (cur === a) cur = null; duck(false); };
+    a.play().catch(() => { if (cur === a) cur = null; duck(false); });
+    return a;
+  }
+  function startVoice() { Sound.voiceOn = true; clip('story'); clip('intro'); sync(); }
+  function stopVoice() { Sound.voiceOn = false; stopClip(); sync(); }
 
   function sync() {
     const m = document.getElementById('musicBtn'), v = document.getElementById('voiceBtn');
@@ -116,6 +120,7 @@
   Sound.toggleMusic = function () { Sound.musicOn ? stopMusic() : startMusic(); };
   Sound.toggleVoice = function () { Sound.voiceOn ? stopVoice() : startVoice(); };
   Sound.say = say;
+  Sound.stopClip = stopClip;
   Sound.resetSpoken = function () { spoken.clear(); };
   document.addEventListener('visibilitychange', () => {
     if (!Sound.ctx) return;

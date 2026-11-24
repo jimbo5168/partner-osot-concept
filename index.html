@@ -28,14 +28,22 @@
       <span class="intro__line" data-scramble="Four names for one partner.">Four names for one partner.</span>
       <span class="intro__line intro__line--accent"><em>One</em> source of truth.</span>
     </h1>
-    <div class="intro__id" aria-hidden="true"><span class="mono">golden_id</span> <b id="goldenId">PTR-00428</b></div>
     <button class="btn-enter" id="enterBtn" type="button">
       <span class="btn-enter__glow" aria-hidden="true"></span>
       <span class="btn-enter__label">Enter the concept</span>
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </button>
-    <p class="intro__hint">Turns on ambient sound and narration. You can mute any time.</p>
+    <p class="intro__hint">Starts a 25-second story with narration and ambient sound. You can mute any time.</p>
     <p class="intro__legal">Not affiliated with or endorsed by Microsoft.</p>
+  </div>
+  <div class="story" id="story" aria-live="polite" hidden>
+    <p class="story__kicker mono">The story · synthetic example</p>
+    <p class="story__text" id="storyText"></p>
+    <div class="story__id" id="storyId">
+      <div class="intro__id"><span class="mono">golden_id</span> <b id="goldenId">PTR-00428</b></div>
+      <p class="story__caption">One golden ID for the same partner across CRM, billing, incentives and programs (synthetic example).</p>
+    </div>
+    <button class="story__skip" id="storySkip" type="button">Skip story</button>
   </div>
   <button class="intro__skip" id="skipBtn" type="button">Enter without sound</button>
 </div>
@@ -111,7 +119,7 @@
 </section>
 
 <!-- ============ R1 ============ -->
-<section class="req" id="r1" data-narrate="Requirement one. Own the strategy, the roadmap, and the backlog. Drag the work around the matrix and watch the backlog re-rank, with acceptance criteria that decide when work is done.">
+<section class="req" id="r1" data-narrate="Requirement one: strategy, roadmap and backlog. Drag the work around the matrix, and watch the backlog re-rank itself.">
   <div class="wrap">
     <header class="req__head">
       <p class="req__tag"><span>Requirement 1 of 5</span> Product ownership</p>
@@ -157,7 +165,7 @@
 </section>
 
 <!-- ============ R2 ============ -->
-<section class="req" id="r2" data-narrate="Requirement two. Work credibly with engineers on APIs, data models, architecture, security, reliability and scale. Pick an entity to read its contract, then flip the trade-off and see what it costs.">
+<section class="req" id="r2" data-narrate="Requirement two: working with engineers on APIs, data models and architecture. Pick an entity to read its contract, then flip the trade-off.">
   <div class="wrap">
     <header class="req__head">
       <p class="req__tag"><span>Requirement 2 of 5</span> Technical product decisions</p>
@@ -203,7 +211,7 @@
 </section>
 
 <!-- ============ R3 ============ -->
-<section class="req" id="r3" data-narrate="Requirement three. Deliver trusted data products. Each product carries a definition, lineage, a freshness promise, a quality score and governed access, so BI, reporting and AI consumers can rely on it.">
+<section class="req" id="r3" data-narrate="Requirement three: trusted data products. Each one carries a clear definition, lineage, a freshness promise, and governed access.">
   <div class="wrap">
     <header class="req__head">
       <p class="req__tag"><span>Requirement 3 of 5</span> Trusted data products</p>
@@ -229,7 +237,7 @@
 </section>
 
 <!-- ============ R4 ============ -->
-<section class="req req--pin" id="r4" data-narrate="Requirement four. Turn an ambiguous partner-business ask into a clear user problem, testable requirements, measurable outcomes, and a phased plan across teams.">
+<section class="req req--pin" id="r4" data-narrate="Requirement four: turning an ambiguous partner ask into a clear problem, measurable outcomes, and a phased plan across teams.">
   <div class="r4-pin" id="r4pin">
     <div class="wrap r4-headwrap">
       <header class="req__head">
@@ -254,7 +262,7 @@
 </section>
 
 <!-- ============ R5 ============ -->
-<section class="req" id="r5" data-narrate="Requirement five. Make production decisions. An incident breaks freshness two days before quarter close. Pick a response and see the effect on trust, reliability, cost, and compliance.">
+<section class="req" id="r5" data-narrate="Requirement five: production decisions. Freshness breaks two days before quarter close. Choose a response, and see what it costs.">
   <div class="wrap">
     <header class="req__head">
       <p class="req__tag"><span>Requirement 5 of 5</span> Production decisions</p>
@@ -290,7 +298,7 @@
 </section>
 
 <!-- ============ WHY JIM ============ -->
-<section class="why" id="why" data-narrate="Why Jim. He owned the message storage product and roadmap at T-Mobile, designed partner API integrations, cut data-center footprint thirty percent with cold storage, and led a five-vendor AI evaluation that cut operating cost sixty percent. This page is an independent concept with synthetic data.">
+<section class="why" id="why" data-narrate="Why Jim. He owned the message storage roadmap at T-Mobile, designed partner API integrations, cut data-center footprint thirty percent with cold storage, and led a five-vendor AI evaluation that cut operating cost sixty percent.">
   <div class="wrap">
     <header class="req__head">
       <p class="req__tag"><span>Why Jim</span> Evidence, mapped to the five</p>

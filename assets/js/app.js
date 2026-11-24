@@ -99,37 +99,101 @@
       .add({ targets: recEls, opacity: [0, 0.55], scale: [0.6, 1], delay: anime.stagger(55, { from: 'center' }), duration: 900 }, 300)
       .add({ targets: '.intro__kicker', opacity: [0, 1], translateY: [12, 0], duration: 700 }, 500)
       .add({ targets: '.intro__line', opacity: [0, 1], translateY: [24, 0], filter: ['blur(10px)', 'blur(0px)'], delay: anime.stagger(380), duration: 1000 }, 700)
-      .add({ targets: '.intro__id', opacity: [0, 1], scale: [0.9, 1], duration: 700 }, 2000)
       .add({ targets: ['.btn-enter', '.intro__hint', '.intro__legal', '.intro__skip'], opacity: [0, 1], translateY: [16, 0], delay: anime.stagger(90), duration: 800 }, 2250);
     $$('.intro__line[data-scramble]').forEach((el, i) => setTimeout(() => decrypt(el, el.dataset.scramble, 800), 700 + i * 380));
-    setTimeout(() => decrypt($('#goldenId'), 'PTR-00428', 900), 2000);
     // records drift gently
     recEls.forEach((el, i) => anime({ targets: el, translateX: [+el.dataset.x, +el.dataset.x + (i % 2 ? 14 : -14)], translateY: [+el.dataset.y, +el.dataset.y + (i % 3 ? -10 : 10)], direction: 'alternate', loop: true, duration: 3200 + i * 140, easing: 'easeInOutSine' }));
   }
-  ['.intro__kicker', '.intro__line', '.intro__id', '.btn-enter', '.intro__hint', '.intro__legal', '.intro__skip'].forEach(s => $$(s).forEach(e => !RM && (e.style.opacity = 0)));
+  ['.intro__kicker', '.intro__line', '.btn-enter', '.intro__hint', '.intro__legal', '.intro__skip'].forEach(s => $$(s).forEach(e => !RM && (e.style.opacity = 0)));
   playIntroOpening();
 
-  let entered = false;
+  /* ---- Opening story: one partner, four names, one golden ID. Text types in sync with the narration. ---- */
+  const STORY = [
+    { t: 0.0,   e: 1.9,   txt: 'Meet one partner:' },
+    { t: 1.9,   e: 3.66,  txt: 'Aster & Vale.', hl: true },
+    { t: 3.66,  e: 12.95, txt: 'In CRM, billing, incentives and programs, it lives under four different names, so four teams get four different answers.' },
+    { t: 12.95, e: 19.86, txt: 'Partner OSOT matches those four records and masters them into one trusted, connected record.' },
+    { t: 19.86, e: 21.73, txt: 'A single source of truth:' },
+    { t: 21.73, e: 25.6,  txt: 'golden ID PTR-00428.', hl: true }
+  ];
+  const STORY_END = 25.7;
+  const storyEl = $('#story'), storyText = $('#storyText'), storyId = $('#storyId');
+  const words = [];
+  STORY.forEach(seg => {
+    const ws = seg.txt.split(' '), span = (seg.e - seg.t) * 0.82;
+    ws.forEach((w, i) => {
+      const el = document.createElement('span'); el.className = 'w' + (seg.hl ? ' hl' : ''); el.textContent = w;
+      storyText.appendChild(el); storyText.appendChild(document.createTextNode(' '));
+      words.push({ el, at: seg.t + (span * i) / ws.length });
+    });
+  });
+  const caret = document.createElement('span'); caret.className = 'caret'; caret.setAttribute('aria-hidden', 'true');
+  storyText.appendChild(caret);
+  const heroRecs = recEls.slice(0, 4);   // the four "Aster & Vale" records
+
+  let entered = false, storyDone = false, storyRAF = 0;
   function enter(withSound) {
     if (entered) return; entered = true;
-    if (withSound && window.Sound) {
-      Sound.startAll();
-      setTimeout(() => Sound.say('Welcome. This is Partner O S O T, an independent concept by Jim Chao, built with synthetic data. It is not affiliated with or endorsed by Microsoft. Five requirements, five working demos. Scroll to begin.', 'intro'), 500);
+    let audio = null;
+    if (withSound && window.Sound) { Sound.startAll(); audio = Sound.say('', 'story'); }
+    // swap the title card for the story stage
+    const center = $('.intro__center');
+    const show = () => {
+      center.style.display = 'none'; $('#skipBtn').style.display = 'none';
+      storyEl.hidden = false; $('#storySkip').focus({ preventScroll: true });
+      if (RM) { $('#storySkip').textContent = 'Continue'; }
+    };
+    if (RM) show();
+    else anime({ targets: [center, '#skipBtn'], opacity: [1, 0], translateY: [0, -14], duration: 500, easing: 'easeInQuad', complete: show });
+    // spotlight the four records of the same partner, dim the rest
+    anime.remove(recEls);
+    recEls.forEach((el, i) => { if (i > 3) gsap.to(el, { opacity: 0.12, duration: 0.8 }); });
+    heroRecs.forEach(el => { el.classList.add('is-hero'); gsap.to(el, { opacity: 1, duration: 0.6 }); });
+    const fired = {};
+    const once = (k, fn) => { if (!fired[k]) { fired[k] = 1; fn(); } };
+    const w = innerWidth, h = innerHeight;
+    const corners = [[0.16, 0.2], [0.84, 0.2], [0.16, 0.8], [0.84, 0.8]];
+    let t0 = performance.now() + (RM ? 0 : 500);
+    function tick(now) {
+      let t;
+      if (audio && !audio.paused && audio.currentTime > 0) { t = audio.currentTime; t0 = now - t * 1000; }
+      else t = Math.max(0, (now - t0) / 1000);
+      if (RM) words.forEach(x => x.el.classList.add('on'));
+      else words.forEach(x => { if (t >= x.at) x.el.classList.add('on'); });
+      // "four different names": the four records move into the four corners
+      if (t >= 3.66) once('spread', () => heroRecs.forEach((el, i) => gsap.to(el, { x: w * corners[i][0] - 80, y: h * corners[i][1] - 14, scale: 1.15, duration: RM ? 0 : 1.2, ease: 'power3.inOut' })));
+      // "matches those four records and masters them": they converge into one
+      if (t >= 14.2) once('merge', () => {
+        converge = 0.6;
+        heroRecs.forEach((el, i) => gsap.to(el, { x: w / 2 - 80, y: h * 0.14, scale: i ? 0.6 : 1.1, opacity: i ? 0 : 1, duration: RM ? 0 : 1.4, delay: RM ? 0 : i * 0.12, ease: 'expo.inOut' }));
+      });
+      if (t >= 21.73) once('id', () => { converge = 1; storyId.classList.add('on'); decrypt($('#goldenId'), 'PTR-00428', 1100); });
+      if (t >= STORY_END) once('end', () => { caret.remove(); setTimeout(() => exitIntro(withSound), RM ? 0 : 1600); });
+      if (!storyDone) storyRAF = requestAnimationFrame(tick);
     }
+    if (RM) { words.forEach(x => x.el.classList.add('on')); storyId.classList.add('on'); $('#goldenId').textContent = 'PTR-00428'; if (!audio) return; audio.addEventListener('ended', () => exitIntro(withSound), { once: true }); return; }
+    storyRAF = requestAnimationFrame(tick);
+    $('#storySkip').onclick = () => { if (window.Sound) Sound.stopClip(); exitIntro(withSound); };
+  }
+  $('#storySkip').addEventListener('click', () => { if (RM) { if (window.Sound) Sound.stopClip(); exitIntro(Sound && Sound.voiceOn); } });
+
+  let exited = false;
+  function exitIntro(withSound) {
+    if (exited) return; exited = true; storyDone = true; cancelAnimationFrame(storyRAF);
     const finish = () => {
       cancelAnimationFrame(introRAF); intro.style.display = 'none';
       document.body.classList.remove('is-intro'); document.body.classList.add('is-in');
       ScrollTrigger.refresh(); heroIn(); $('#main').focus({ preventScroll: true });
+      if (withSound && window.Sound) setTimeout(() => Sound.say('', 'intro'), 400);
     };
     if (RM) return finish();
-    anime.remove(recEls);
     converge = 1;
     const tl = anime.timeline({ easing: 'easeInOutExpo', complete: finish });
-    tl.add({ targets: recEls, translateX: innerWidth / 2 - 70, translateY: innerHeight / 2 - 14, scale: 0.3, opacity: 0, delay: anime.stagger(25), duration: 900 })
-      .add({ targets: '.intro__center', scale: [1, 0.92], opacity: [1, 0], duration: 600 }, 200)
-      .add({ targets: '.intro__bar--top', translateY: '-100%', duration: 700 }, 700)
-      .add({ targets: '.intro__bar--bot', translateY: '100%', duration: 700 }, 700)
-      .add({ targets: intro, opacity: [1, 0], duration: 600 }, 950);
+    tl.add({ targets: recEls, opacity: 0, scale: 0.4, delay: anime.stagger(20), duration: 700 })
+      .add({ targets: '#story', scale: [1, 0.94], opacity: [1, 0], duration: 600 }, 150)
+      .add({ targets: '.intro__bar--top', translateY: '-100%', duration: 700 }, 600)
+      .add({ targets: '.intro__bar--bot', translateY: '100%', duration: 700 }, 600)
+      .add({ targets: intro, opacity: [1, 0], duration: 600 }, 850);
   }
   $('#enterBtn').addEventListener('click', () => enter(true));
   $('#skipBtn').addEventListener('click', () => enter(false));
@@ -464,7 +528,6 @@
       gsap.to(obj, { v, duration: RM ? 0 : 0.9, onUpdate: () => (num.textContent = Math.round(obj.v)) });
     });
     const vd = $('#verdict'); vd.innerHTML = o.t; if (!RM) gsap.fromTo(vd, { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.5 });
-    if (window.Sound && Sound.voiceOn) Sound.say(vd.textContent);
   }));
   const hb = $('#healthBars'); const BAD = { 8: 'w', 9: 'b', 19: 'w', 24: 'b' };
   hb.innerHTML = Array.from({ length: 30 }, (_, i) => `<i class="${BAD[i] || ''}" style="height:${BAD[i] ? (BAD[i] === 'b' ? 55 : 75) : 88 + ((i * 7) % 12)}%" title="Day ${i + 1}"></i>`).join('');
