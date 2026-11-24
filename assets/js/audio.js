@@ -85,7 +85,7 @@
   const cache = {}; let cur = null;
   function clip(key) {
     if (!CLIPS.includes(key)) return null;
-    if (!cache[key]) { const a = new Audio('assets/audio/' + key + '.mp3'); a.preload = 'auto'; cache[key] = a; }
+    if (!cache[key]) { const a = new Audio('assets/audio/' + key + '.mp3'); a.preload = 'auto'; a.__key = key; cache[key] = a; }
     return cache[key];
   }
   function duck(on) {
@@ -116,11 +116,12 @@
     if (!Sound.voiceOn || !key || !CLIPS.includes(key)) return null;
     if (spoken.has(key) && !force) return null;
     const busy = cur && !cur.paused && !cur.ended;
-    if (busy && !force && key !== 'story' && key !== 'intro') { pending = key; return null; }
+    // the general intro line gives way to the first requirement; other clips finish first
+    if (busy && !force && key !== 'story' && key !== 'intro' && cur.__key !== 'intro') { pending = key; return null; }
     pending = null;
     return play(key);
   }
-  function startVoice() { Sound.voiceOn = true; clip('story'); clip('intro'); sync(); }
+  function startVoice() { Sound.voiceOn = true; CLIPS.forEach(clip); sync(); }
   function stopVoice() { Sound.voiceOn = false; stopClip(); sync(); }
 
   function sync() {
