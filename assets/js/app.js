@@ -518,7 +518,7 @@
   mm.add('(min-width: 761px) and (prefers-reduced-motion: no-preference)', () => {
     const track = $('#r4track');
     const dist = () => track.scrollWidth - innerWidth + 40;
-    const tw = gsap.to(track, { x: () => -dist(), ease: 'none', scrollTrigger: { trigger: '#r4pin', start: 'top top', end: () => '+=' + dist(), pin: true, scrub: 0.8, invalidateOnRefresh: true, anticipatePin: 1,
+    const tw = gsap.to(track, { x: () => -dist(), ease: 'none', scrollTrigger: { trigger: '#r4pin', start: 'top top', end: () => '+=' + dist(), pin: true, scrub: 0.8, invalidateOnRefresh: true, anticipatePin: 1, refreshPriority: 1,
       onUpdate: s => { if (s.progress > 0.7) phaseFill(); } } });
     $$('.stage').forEach(st => { const a = gsap.from(st.querySelectorAll('h3, p, li, .chips, .phase'), { y: 24, opacity: 0, stagger: 0.04, duration: 0.5, paused: true }); onSeen(st, () => a.play()); });
     return () => {};
@@ -573,5 +573,7 @@
   });
 
   /* ================= LATE REFRESH ================= */
-  addEventListener('load', () => { ScrollTrigger.refresh(); drawBeams(); placeChips(); });
+  ScrollTrigger.sort();
+  addEventListener('load', () => { ScrollTrigger.sort(); ScrollTrigger.refresh(); drawBeams(); placeChips(); });
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => ScrollTrigger.refresh());
 })();
