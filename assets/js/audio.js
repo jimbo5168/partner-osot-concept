@@ -94,18 +94,31 @@
     g.cancelScheduledValues(t); g.setValueAtTime(g.value, t);
     g.linearRampToValueAtTime(on ? 0.3 : 0.9, t + (on ? 0.4 : 1.2));
   }
-  function stopClip() { if (cur) { cur.pause(); cur.onended = null; cur = null; duck(false); } }
-  // say(text, key, force): text is the on-page transcript; the key picks the recorded clip.
-  function say(text, key, force) {
-    if (!Sound.voiceOn || !key) return null;
-    if (spoken.has(key) && !force) return null;
+  let pending = null;   // the latest section asked for while another clip was still talking
+  function stopClip() { pending = null; if (cur) { cur.pause(); cur.onended = null; cur = null; duck(false); } }
+  function play(key) {
     const a = clip(key); if (!a) return null;
     spoken.add(key);
     if (cur && cur !== a) { cur.pause(); cur.onended = null; }
     cur = a; a.currentTime = 0; a.volume = 1; duck(true);
-    a.onended = () => { if (cur === a) cur = null; duck(false); };
-    a.play().catch(() => { if (cur === a) cur = null; duck(false); });
+    a.onended = () => {
+      if (cur === a) cur = null;
+      // a section reached during this clip gets its narration right after, instead of cutting this one off
+      if (pending && Sound.voiceOn) { const k = pending; pending = null; setTimeout(() => { if (!cur && !spoken.has(k)) play(k); else duck(false); }, 350); }
+      else duck(false);
+    };
+    a.play().catch(() => { if (cur === a) cur = null; spoken.delete(key); duck(false); });
     return a;
+  }
+  // say(text, key, force): text is the on-page transcript; the key picks the recorded clip.
+  // The opening story and intro play at once; a section clip waits for the clip in progress to finish.
+  function say(text, key, force) {
+    if (!Sound.voiceOn || !key || !CLIPS.includes(key)) return null;
+    if (spoken.has(key) && !force) return null;
+    const busy = cur && !cur.paused && !cur.ended;
+    if (busy && !force && key !== 'story' && key !== 'intro') { pending = key; return null; }
+    pending = null;
+    return play(key);
   }
   function startVoice() { Sound.voiceOn = true; clip('story'); clip('intro'); sync(); }
   function stopVoice() { Sound.voiceOn = false; stopClip(); sync(); }
