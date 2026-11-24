@@ -458,3 +458,10 @@ body.is-in .spotlight{animation:spotlight 2.2s var(--ease-out) .5s forwards}
 
 /* Requirement 5 gets the same room as the others before Why Jim */
 #r5{min-height:100vh;padding-bottom:calc(var(--s9) * 2)}
+
+/* Requirement 4 plays by itself (no scroll pin) */
+.r4-track{will-change:transform;touch-action:pan-y}
+.r4-nav{display:flex;align-items:center;gap:12px;margin:var(--s5) 0 0;padding-left:max(var(--gutter),calc((100vw - var(--max))/2 + var(--gutter)));font:500 var(--t-xs)/1 var(--f-mono);color:var(--muted)}
+.r4-nav button{width:40px;height:40px;border-radius:50%;border:1px solid var(--line-2);color:var(--text);font-size:18px;transition:border-color .2s,transform .2s var(--ease-out)}
+.r4-nav button:hover{border-color:var(--amber);transform:translateY(-2px)}
+@media (max-width:760px){.r4-nav{display:none}}

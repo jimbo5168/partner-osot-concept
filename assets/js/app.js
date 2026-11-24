@@ -515,16 +515,38 @@
   /* ================= R4: PINNED HORIZONTAL STORY (GSAP ScrollTrigger) ================= */
   const mm = gsap.matchMedia();
   const phaseFill = () => $$('.phase i').forEach((p, i) => setTimeout(() => p.style.setProperty('--p', 1), i * 250));
+  // Requirement 4 plays by itself: as soon as the section is on screen the cards slide through the
+  // five stages on a timer. It does not depend on scrolling; you can also drag the row or use the arrows.
+  onSeen($('.stage--plan'), phaseFill);
   mm.add('(min-width: 761px) and (prefers-reduced-motion: no-preference)', () => {
-    const track = $('#r4track');
-    const dist = () => track.scrollWidth - innerWidth + 40;
-    const tw = gsap.to(track, { x: () => -dist(), ease: 'none', scrollTrigger: { trigger: '#r4pin', start: 'top top', end: () => '+=' + dist(), pin: true, scrub: 0.8, invalidateOnRefresh: true, anticipatePin: 1, refreshPriority: 1,
-      onUpdate: s => { if (s.progress > 0.7) phaseFill(); } } });
-    $$('.stage').forEach(st => { const a = gsap.from(st.querySelectorAll('h3, p, li, .chips, .phase'), { y: 24, opacity: 0, stagger: 0.04, duration: 0.5, paused: true }); onSeen(st, () => a.play()); });
-    return () => {};
+    const track = $('#r4track'), wrap = $('#r4pin'), stages = $$('.stage', track);
+    const maxX = () => Math.max(0, track.scrollWidth - wrap.clientWidth);
+    const stops = () => { const m = maxX(), out = []; stages.forEach(st => { const v = Math.min(m, st.offsetLeft - stages[0].offsetLeft); if (!out.length || v > out[out.length - 1] + 2) out.push(v); }); return out; };
+    let i = 0, timer = 0, visible = false, hold = false, arming = false;
+    const go = (n, d = 1.1) => { const st = stops(); i = (n + st.length) % st.length; gsap.to(track, { x: -st[i], duration: d, ease: 'power3.inOut', overwrite: 'auto' }); };
+    const start = () => { clearInterval(timer); if (visible && !hold) timer = setInterval(() => go(i + 1), 2600); };
+    const stop = () => clearInterval(timer);
+    const vis = new IntersectionObserver(es => es.forEach(e => {
+      visible = e.isIntersecting && e.intersectionRatio > 0.25;
+      if (visible) { if (!timer && !arming) { arming = true; setTimeout(() => { arming = false; if (visible && !hold) go(i + 1); start(); }, 900); } } else { stop(); timer = 0; }
+    }), { threshold: [0, 0.25, 0.5] });
+    vis.observe(wrap);
+    wrap.addEventListener('pointerenter', () => { hold = true; stop(); });
+    wrap.addEventListener('pointerleave', () => { hold = false; start(); });
+    const nav = document.createElement('div'); nav.className = 'r4-nav';
+    nav.innerHTML = '<button type="button" aria-label="Previous stage">&#8592;</button><span>Plays by itself · drag or use the arrows</span><button type="button" aria-label="Next stage">&#8594;</button>';
+    wrap.appendChild(nav);
+    const [prevB, nextB] = nav.querySelectorAll('button');
+    prevB.addEventListener('click', () => go(i - 1, 0.8)); nextB.addEventListener('click', () => go(i + 1, 0.8));
+    const drag = Draggable.create(track, { type: 'x', bounds: { minX: -maxX(), maxX: 0 }, edgeResistance: 0.85, cursor: 'grab', activeCursor: 'grabbing',
+      onPress: () => { hold = true; stop(); },
+      onRelease() { const st = stops(), x = -this.x; let best = 0; st.forEach((v, k) => { if (Math.abs(v - x) < Math.abs(st[best] - x)) best = k; }); go(best, 0.6); hold = false; },
+      onDragStart: () => { drag[0].applyBounds({ minX: -maxX(), maxX: 0 }); } });
+    const onResize = () => { drag[0].applyBounds({ minX: -maxX(), maxX: 0 }); go(i, 0.3); };
+    addEventListener('resize', onResize);
+    return () => { stop(); vis.disconnect(); nav.remove(); drag[0].kill(); removeEventListener('resize', onResize); gsap.set(track, { x: 0 }); };
   });
   mm.add('(max-width: 760px), (prefers-reduced-motion: reduce)', () => {
-    ScrollTrigger.create({ trigger: '.stage--plan', start: 'top 85%', once: true, onEnter: phaseFill });
   });
 
   /* ================= R5: INCIDENT + HEALTH + COST ================= */
