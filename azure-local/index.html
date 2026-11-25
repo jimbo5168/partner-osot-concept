@@ -1,0 +1,388 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fleet Pulse · Azure Local Concept</title>
+<meta name="description" content="Fleet Pulse: a deployment and lifecycle health concept for Azure Local clusters. Product concept by Jim Chao, built with synthetic data.">
+<meta name="theme-color" content="#060a10">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100..125,400..900&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/site.css?v=1">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23060a10'/%3E%3Cpath d='M4 17h6l3-7 5 13 3-6h7' stroke='%2369c3ff' stroke-width='2.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='28' cy='17' r='2.6' fill='%23ffa24c'/%3E%3C/svg%3E">
+</head>
+<body class="is-intro">
+<a class="skip" href="#main">Skip to content</a>
+<div class="cursor-glow" id="cursorGlow" aria-hidden="true"></div>
+
+<!-- ================= OPENING ================= -->
+<div class="intro" id="intro" role="dialog" aria-modal="true" aria-labelledby="introTitle">
+  <div class="intro__bar intro__bar--top"></div>
+  <div class="intro__bar intro__bar--bot"></div>
+  <canvas class="intro__canvas" id="introCanvas" aria-hidden="true"></canvas>
+  <div class="intro__veil" aria-hidden="true"></div>
+  <div class="intro__scan" aria-hidden="true"></div>
+  <div class="intro__grain" aria-hidden="true"></div>
+  <div class="intro__chips" id="introChips" aria-hidden="true"></div>
+
+  <div class="intro__center">
+    <p class="intro__kicker"><span class="dot"></span>Product concept by Jim Chao · synthetic data</p>
+    <h1 class="intro__title" id="introTitle">
+      <span class="intro__line" data-scramble="1,240 clusters.">1,240 clusters.</span>
+      <span class="intro__line" data-scramble="One stuck at step 7.">One stuck at step 7.</span>
+      <span class="intro__line intro__line--accent">One fleet view that sees <em>why</em>.</span>
+    </h1>
+    <button class="btn-enter" id="enterBtn" type="button">
+      <span class="btn-enter__ring" aria-hidden="true"></span>
+      <span class="btn-enter__label">Enter the concept</span>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <p class="intro__hint">Plays a 30-second story with narration and music. Mute any time.</p>
+  </div>
+
+  <div class="story" id="story" aria-live="polite" hidden>
+    <p class="story__kicker mono">The story · synthetic example</p>
+    <p class="story__text" id="storyText"></p>
+    <div class="story__id" id="storyId">
+      <div class="story__metric"><span class="mono">cluster</span> <b id="storyCluster">ST-214</b> <span class="mono">step</span> <b class="o" id="storyStep">7/12</b> <span class="mono">success</span> <b id="storyRate">91% → 96%</b></div>
+      <p class="story__caption">ST-214 is the made-up cluster in store 214. Step 7 of 12 is network validation in a twelve-step deployment. 91% is first-attempt deployment success across 1,240 synthetic clusters; 96% is the projection with a driver and firmware pre-check.</p>
+    </div>
+    <button class="story__skip" id="storySkip" type="button">Skip story</button>
+  </div>
+
+  <div class="intro__answers" aria-hidden="true">
+    <div class="ans" data-k="0"><i>ST-214 · store 214</i><b>Step <span id="ansStep">1</span> / 12</b>
+      <span class="ans__steps" id="ansSteps"></span><span class="ans__note" id="ansNote">Deploying…</span></div>
+    <div class="ans" data-k="1"><i>Network adapter driver</i><b>v2.1</b><span class="ans__note">installed · validated list says <em>v2.3</em></span></div>
+    <div class="ans" data-k="2"><i>Partner C hardware</i><b>41 <small>of 50</small></b><span class="ans__note">step-7 failures share this driver</span></div>
+    <div class="ans ans--gold" data-k="3"><i>First-attempt deployment success</i><b id="ansRate">91.4%</b><span class="ans__note" id="ansRateNote">across 1,240 clusters</span></div>
+  </div>
+  <button class="intro__skip" id="skipBtn" type="button">Enter without sound</button>
+</div>
+
+<!-- ================= SOUND DOCK ================= -->
+<div class="dock" id="dock" aria-label="Sound controls">
+  <button class="dock__btn" id="musicBtn" type="button" aria-pressed="false" aria-label="Music">
+    <span class="eq" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+    <span class="dock__txt">Music <b>off</b></span>
+  </button>
+  <button class="dock__btn" id="voiceBtn" type="button" aria-pressed="false" aria-label="Narration">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3Zm7 9a7 7 0 0 1-14 0M12 19v2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+    <span class="dock__txt">Voice <b>off</b></span>
+  </button>
+  <button class="dock__btn dock__btn--icon" id="replayIntro" type="button" aria-label="Replay the opening">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.4-5.7M4 4v4h4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </button>
+</div>
+
+<!-- ================= NAV ================= -->
+<header class="nav">
+  <a class="brand" href="#top" aria-label="Back to top">
+    <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M3 17h6l3-7 5 13 3-6h8" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/><circle cx="28" cy="17" r="2.6" fill="var(--ember)"/></svg>
+    <span>Fleet Pulse</span>
+  </a>
+  <nav class="rail" aria-label="Sections">
+    <a href="#r1" data-rail="r1"><b>1</b>Deploy</a>
+    <a href="#r2" data-rail="r2"><b>2</b>Lifecycle</a>
+    <a href="#r3" data-rail="r3"><b>3</b>Partners</a>
+    <a href="#r4" data-rail="r4"><b>4</b>Signals</a>
+    <a href="#r5" data-rail="r5"><b>5</b>Roadmap</a>
+    <a href="#why" data-rail="why"><b>J</b>Why Jim</a>
+  </nav>
+  <span class="nav__tag">Concept · synthetic data</span>
+  <i class="nav__progress" id="navProgress"></i>
+</header>
+
+<main id="main">
+<!-- ================= HERO ================= -->
+<section class="hero" id="top" data-narrate="intro">
+  <div class="hero__spot" aria-hidden="true"></div>
+  <div class="wrap hero__grid">
+    <div class="hero__copy">
+      <p class="label-pill"><span class="dot"></span>Product concept by Jim Chao · synthetic data</p>
+      <h2 class="hero__title" id="heroTitle">Deployment and lifecycle health, <span class="shiny">fleet-wide.</span></h2>
+      <p class="hero__lede">A product manager's working view for Azure Local: every on-premises cluster from first deployment through every update, so the team can see where customers get stuck, which hardware drifts from the validated list, and what to build next.</p>
+      <div class="hero__cta">
+        <a class="btn-uv" href="#r1"><span>Walk the five sections</span></a>
+        <a class="btn-ghost" href="#map">Jump to the JD map</a>
+      </div>
+    </div>
+    <div class="hero__viz card-fx" data-notilt>
+      <div class="viz__head"><span class="mono">Synthetic fleet · 1,240 clusters</span><span class="legend"><i class="sh sh--ok"></i>healthy <i class="sh sh--warn"></i>needs action <i class="sh sh--bad"></i>failed</span></div>
+      <canvas id="heroFleet" class="hero__fleet" aria-label="Animated grid of 1,240 synthetic clusters, most healthy, a few amber and red"></canvas>
+      <div class="ticker" id="ticker" aria-live="off">
+        <div class="ticker__head"><span class="mono"><i class="live-dot"></i>Simulated event stream</span><button class="ticker__pause" id="tickerPause" type="button" aria-pressed="false">Pause</button></div>
+        <ul class="ticker__list" id="tickerList"></ul>
+      </div>
+    </div>
+  </div>
+  <div class="wrap hero__stats">
+    <div class="stat card-fx"><b data-count="1240">0</b><span>synthetic clusters, six made-up hardware partners</span></div>
+    <div class="stat card-fx"><b data-count="91.4" data-dec="1" data-suffix="%">0</b><span>first-attempt deployment success</span></div>
+    <div class="stat card-fx"><b data-count="4.6" data-dec="1" data-suffix=" h">0</b><span>median time from unboxing to first workload</span></div>
+    <div class="stat card-fx"><b data-count="82" data-suffix="%">0</b><span>of the fleet ready for the next update</span></div>
+  </div>
+  <div class="marq" aria-hidden="true">
+    <div class="marq__row"><span>deployment success</span><span>time to value</span><span>update readiness</span><span>health gates</span><span>validated hardware</span><span>compatibility drift</span><span>support signals</span><span>requirements</span><span>roadmap tradeoffs</span><span>launch readiness</span></div>
+  </div>
+</section>
+
+<!-- ================= R1 DEPLOYMENT FUNNEL ================= -->
+<section class="sec" id="r1" data-narrate="r1">
+  <div class="wrap">
+    <header class="sec__head">
+      <p class="sec__num mono"><b>1</b> Deployment success · time to value</p>
+      <h2 class="sec__title">Where do first deployments stop?</h2>
+      <p class="sec__jd"><span class="mono">JD</span> "Improve product quality and adoption through customer feedback, telemetry, support insights, and measurable outcomes such as deployment success, reliability, manageability, and time to value."</p>
+    </header>
+    <div class="r1">
+      <div class="card-fx funnel" data-notilt>
+        <div class="card__bar"><span class="mono">Twelve deployment steps, grouped into six stages</span>
+          <div class="seg" role="radiogroup" aria-label="Customer segment" id="segBtns">
+            <button role="radio" aria-checked="true" data-seg="all">All</button>
+            <button role="radio" aria-checked="false" data-seg="retail">Retail</button>
+            <button role="radio" aria-checked="false" data-seg="factory">Factory</button>
+            <button role="radio" aria-checked="false" data-seg="clinic">Clinic</button>
+          </div>
+        </div>
+        <ol class="funnel__list" id="funnel"></ol>
+        <p class="funnel__foot mono" id="funnelFoot"></p>
+      </div>
+      <div class="r1__side">
+        <div class="card-fx detail" id="stageDetail">
+          <p class="mono detail__k" id="sdK">Stage</p>
+          <h3 id="sdTitle">Validate network</h3>
+          <p id="sdText"></p>
+          <div class="bars" id="sdBars"></div>
+          <div class="detail__kpis">
+            <div><b id="sdMed">0</b><span>median minutes in stage</span></div>
+            <div><b id="sdLost">0</b><span>clusters stopped here</span></div>
+          </div>
+        </div>
+        <div class="card-fx ttv">
+          <p class="mono">Time to first workload (hours)</p>
+          <svg viewBox="0 0 320 90" class="ttv__svg" aria-label="Distribution of hours from unboxing to first workload; median 4.6, 90th percentile 11.2">
+            <path id="ttvArea" class="ttv__area" d=""/><path id="ttvLine" class="ttv__line" d=""/>
+            <line class="ttv__mark" x1="92" x2="92" y1="8" y2="78"/><line class="ttv__mark ttv__mark--o" x1="224" x2="224" y1="8" y2="78"/>
+            <text x="96" y="16" class="ttv__t">median 4.6 h</text><text x="228" y="16" class="ttv__t o">p90 11.2 h</text>
+          </svg>
+        </div>
+      </div>
+    </div>
+    <aside class="how card-fx"><p class="mono">How I'd approach it</p><p>Instrument all twelve steps like a call flow and read where sessions drop, not just whether the last step passed. At T-Mobile I built an operational dashboard for the Message Store platform; at Comverse I approved Methods of Procedure for deployments designed for five-nines availability.</p></aside>
+  </div>
+</section>
+
+<!-- ================= R2 LIFECYCLE ================= -->
+<section class="sec" id="r2" data-narrate="r2">
+  <div class="wrap">
+    <header class="sec__head">
+      <p class="sec__num mono"><b>2</b> Lifecycle · update readiness</p>
+      <h2 class="sec__title">Ship every update in rings, gated by health.</h2>
+      <p class="sec__jd"><span class="mono">JD</span> "Drive cross-team alignment on scope, milestones, readiness, risks, and success measures; communicate decisions clearly and make progress in ambiguous situations." Area: infrastructure reliability and lifecycle experiences.</p>
+    </header>
+    <div class="r2">
+      <div class="card-fx rings" data-notilt>
+        <div class="card__bar"><span class="mono">Update R-26.11 · staged rollout</span><span class="pill" id="gateState">Proceeding</span></div>
+        <svg viewBox="0 0 300 300" class="rings__svg" id="ringSvg" aria-label="Three rollout rings: canary, early and broad"></svg>
+        <div class="gate">
+          <label for="gate" class="mono">Auto-pause when update failure rate exceeds <b id="gateVal">2.5%</b></label>
+          <input type="range" id="gate" min="0.5" max="5" step="0.1" value="2.5">
+          <p id="gateText" class="gate__text"></p>
+        </div>
+      </div>
+      <div class="r2__side">
+        <div class="card-fx versions">
+          <p class="mono">Fleet by release (R-26.11 = synthetic November release)</p>
+          <div class="stack" id="verStack"></div>
+          <div class="stack__legend" id="verLegend"></div>
+        </div>
+        <div class="card-fx ready">
+          <div class="card__bar"><span class="mono">Readiness checks · 60-cluster sample</span><span class="mono ready__sum" id="readySum"></span></div>
+          <div class="heat" id="heat" role="img" aria-label="Grid of readiness checks per cluster"></div>
+          <div class="heat__cols mono"><span>Firmware</span><span>Drivers</span><span>Storage health</span><span>Free capacity</span><span>Support window</span></div>
+        </div>
+      </div>
+    </div>
+    <aside class="how card-fx"><p class="mono">How I'd approach it</p><p>Treat an update like a subscriber migration: a plan the customer has seen and approved, then rings with clear exit criteria. At Comverse I executed the Rogers (550,000 subscribers) and AT&amp;T (580,000) migrations after demonstrating the plan and getting customer approval.</p></aside>
+  </div>
+</section>
+
+<!-- ================= R3 PARTNERS ================= -->
+<section class="sec" id="r3" data-narrate="r3">
+  <div class="wrap">
+    <header class="sec__head">
+      <p class="sec__num mono"><b>3</b> Hardware partners · validation</p>
+      <h2 class="sec__title">Validated on paper, drifting in the field.</h2>
+      <p class="sec__jd"><span class="mono">JD</span> "Collaborate with hardware, software, and ecosystem partners as relevant to your product area to improve solution compatibility, validation, availability, and customer experience."</p>
+    </header>
+    <div class="pipe card-fx" data-notilt>
+      <svg class="pipe__svg" id="pipeSvg" viewBox="0 0 1000 90" preserveAspectRatio="none" aria-hidden="true"></svg>
+      <div class="pipe__nodes"><span>Partner submits a part</span><span>Lab validation</span><span>Validated catalog</span><span>Fleet pre-check</span><span>Drift report back to partner</span></div>
+    </div>
+    <div class="r3">
+      <div class="card-fx matrix" data-notilt>
+        <div class="card__bar"><span class="mono">Six made-up partners × six component classes</span><span class="legend"><i class="sh sh--ok"></i>validated <i class="sh sh--warn"></i>in validation <i class="sh sh--bad"></i>gap</span></div>
+        <div class="mx" id="mx" role="grid" aria-label="Validation matrix"></div>
+      </div>
+      <div class="r3__side">
+        <div class="card-fx partner" id="partner">
+          <p class="mono">Partner detail</p>
+          <h3 id="pName">Partner C</h3>
+          <div class="partner__kpis">
+            <div><b id="pShare">0</b><span>share of fleet</span></div>
+            <div><b id="pDrift">0</b><span>clusters on unvalidated combos</span></div>
+            <div><b id="pDays">0</b><span>median days to validate</span></div>
+          </div>
+          <p id="pNote" class="partner__note"></p>
+        </div>
+        <div class="card-fx drift">
+          <p class="mono">Compatibility drift by partner (% of their clusters)</p>
+          <div class="drift__bars" id="driftBars"></div>
+        </div>
+      </div>
+    </div>
+    <aside class="how card-fx"><p class="mono">How I'd approach it</p><p>Make validation a loop, not a stamp: what runs in the field flows back to the partner. At T-Mobile I wrote partner API integration designs, including the original Smarsh Archive design, and directed Mavenir's implementation against them; at Comverse, AT&amp;T beta trials came before a three-system purchase.</p></aside>
+  </div>
+</section>
+
+<!-- ================= R4 SIGNALS ================= -->
+<section class="sec" id="r4" data-narrate="r4">
+  <div class="wrap">
+    <header class="sec__head">
+      <p class="sec__num mono"><b>4</b> Customer signals · requirements</p>
+      <h2 class="sec__title">From four kinds of signal to one clear requirement.</h2>
+      <p class="sec__jd"><span class="mono">JD</span> "Engage customers, field teams, and partners to uncover deployment, migration, management, and operational pain points; turn insights into clear product requirements and end-to-end experiences."</p>
+    </header>
+    <div class="r4 card-fx" data-notilt id="r4box">
+      <svg class="beams" id="beams" aria-hidden="true"></svg>
+      <div class="src" id="srcCol">
+        <div class="src__n" data-src="0"><b data-count="1240">0</b><span>cluster telemetry</span></div>
+        <div class="src__n" data-src="1"><b data-count="312">0</b><span>support cases</span></div>
+        <div class="src__n" data-src="2"><b data-count="46">0</b><span>field-team notes</span></div>
+        <div class="src__n" data-src="3"><b data-count="12">0</b><span>customer interviews</span></div>
+      </div>
+      <div class="fuse" id="fuse"><span class="mono">ranked by</span><b>reach × severity × evidence</b></div>
+      <ol class="pains" id="pains"></ol>
+    </div>
+    <div class="req card-fx" id="req">
+      <div class="req__head"><p class="mono" id="reqK">Requirement draft</p><span class="pill pill--o" id="reqScore">score 92</span></div>
+      <h3 id="reqTitle"></h3>
+      <div class="req__grid">
+        <div><p class="mono">User story</p><p id="reqStory"></p></div>
+        <div><p class="mono">Acceptance criteria</p><ul id="reqAC"></ul></div>
+        <div><p class="mono">Success measure</p><p id="reqMetric"></p></div>
+      </div>
+    </div>
+    <aside class="how card-fx"><p class="mono">How I'd approach it</p><p>Let operational data size the problem and conversations explain it. For cold storage I used traffic and TTL capacity modeling plus a proof of concept before signing off the design; on anti-spam, complaints fell 20%, and I still chased the remaining gaps and proposed a volumetric blocker.</p></aside>
+  </div>
+</section>
+
+<!-- ================= R5 ROADMAP ================= -->
+<section class="sec" id="r5" data-narrate="r5">
+  <div class="wrap">
+    <header class="sec__head">
+      <p class="sec__num mono"><b>5</b> Roadmap · tradeoffs</p>
+      <h2 class="sec__title">Seven asks, thirty engineering weeks.</h2>
+      <p class="sec__jd"><span class="mono">JD</span> "Own the product direction and roadmap for a defined set of Azure Local customer scenarios, balancing customer value, technical feasibility, business impact, and delivery tradeoffs."</p>
+    </header>
+    <div class="r5">
+      <div class="card-fx road" data-notilt>
+        <div class="card__bar"><span class="mono">Rank by</span>
+          <div class="seg" role="radiogroup" aria-label="Ranking lens" id="lensBtns">
+            <button role="radio" aria-checked="true" data-lens="bal">Balanced</button>
+            <button role="radio" aria-checked="false" data-lens="val" aria-label="Customer value">Value</button>
+            <button role="radio" aria-checked="false" data-lens="fea">Feasibility</button>
+            <button role="radio" aria-checked="false" data-lens="biz" aria-label="Business impact">Impact</button>
+          </div>
+        </div>
+        <ol class="road__list" id="road"></ol>
+        <p class="road__trade" id="trade"></p>
+      </div>
+      <div class="r5__side">
+        <div class="card-fx launch">
+          <p class="mono">Launch readiness · driver &amp; firmware pre-check</p>
+          <div class="launch__grid" id="launch"></div>
+        </div>
+        <div class="card-fx outcome">
+          <p class="mono">Success measures for the first release</p>
+          <ul class="outcome__list">
+            <li><b data-count="96" data-suffix="%">0</b><span>first-attempt deployment success (from 91.4%)</span></li>
+            <li><b data-count="3.5" data-dec="1" data-suffix=" h">0</b><span>median time to first workload (from 4.6 h)</span></li>
+            <li><b data-count="-30" data-suffix="%">0</b><span>deployment support cases per 100 clusters</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <aside class="how card-fx"><p class="mono">How I'd approach it</p><p>Write the tradeoff down before the decision, with the numbers. Moving long-retention Message Storage objects to cold storage meant slower retrieval; capacity modeling and a proof of concept showed the cost, engineering aligned, and the relevant data-center footprint fell 30% with minimal reported user impact.</p></aside>
+  </div>
+</section>
+
+<!-- ================= WHY JIM ================= -->
+<section class="sec why" id="why" data-narrate="why">
+  <div class="wrap">
+    <header class="sec__head">
+      <p class="sec__num mono"><b>J</b> Why Jim</p>
+      <h2 class="sec__title">The concept is synthetic. The experience is real.</h2>
+      <p class="why__role">Principal Engineer / Technical Product Owner, System Architecture, T-Mobile · Feb 2013 to Apr 2026 · 15+ years in carrier messaging platforms</p>
+    </header>
+    <div class="proofs">
+      <article class="proof card-fx"><i>Storage platform at carrier scale</i><h3>Message Store product owner</h3><p>Owned Message Store product definition, the message-storage roadmap and managed deployment for DIGITS and eDIGITS, across regions.</p></article>
+      <article class="proof card-fx"><i>Lifecycle and tiering</i><h3>Cold storage, <b>-30%</b> footprint</h3><p>Signed off the design for moving long-retention objects to cold storage after capacity modeling and a proof of concept.</p></article>
+      <article class="proof card-fx"><i>Reliable deployments</i><h3>Five-nines procedures</h3><p>Approved Methods of Procedure for deployments designed for five-nines availability at Comverse.</p></article>
+      <article class="proof card-fx"><i>Large migrations</i><h3><b>550,000</b> and <b>580,000</b> subscribers</h3><p>Rogers and AT&amp;T subscriber migrations at Comverse, executed after demonstrating the plan and getting customer approval.</p></article>
+      <article class="proof card-fx"><i>Partners and evaluation</i><h3>Five-vendor AI evaluation</h3><p>Voicemail transcription and translation: OPEX about <b>-60%</b>, accuracy about <b>+30%</b>, launched on time and within budget.</p></article>
+      <article class="proof card-fx"><i>Inventor</i><h3>8 U.S. patents and publications</h3><p>4 granted, 4 published applications, in messaging and storage.</p></article>
+    </div>
+    <p class="why__gap">What I'd learn first: the hyper-converged and virtualization stack and the hardware OEM program details. What I bring on day one: storage-platform ownership, deployment and migration discipline, and partner validation.</p>
+  </div>
+</section>
+
+<!-- ================= JD MAP ================= -->
+<section class="sec map" id="map">
+  <div class="wrap">
+    <header class="sec__head">
+      <p class="sec__num mono"><b>M</b> JD coverage map</p>
+      <h2 class="sec__title">Each JD line, where it is shown, and the real evidence.</h2>
+    </header>
+    <div class="cov card-fx" data-notilt>
+      <div class="cov__row cov__row--h mono"><span>JD line</span><span>Shown in</span><span>Real evidence</span></div>
+      <div class="cov__row"><span>Own product direction and roadmap; balance value, feasibility, impact, tradeoffs</span><a href="#r5">5 · Roadmap</a><span>Message-storage roadmap; cold-storage tradeoff decision</span></div>
+      <div class="cov__row"><span>Engage customers, field and partners on deployment and migration pain points; write requirements</span><a href="#r4">4 · Signals</a><span>Requirement interviews with internal customers; business needs into system requirements</span></div>
+      <div class="cov__row"><span>Validation, release, ongoing improvement with engineering and operations</span><a href="#r1">1 · Deploy</a><span>Five-nines Methods of Procedure; operational dashboard</span></div>
+      <div class="cov__row"><span>Cross-team alignment on milestones, readiness, risks, success measures</span><a href="#r2">2 · Lifecycle</a><span>Rogers and AT&amp;T subscriber migrations; MMS program schedule</span></div>
+      <div class="cov__row"><span>Quality and adoption through telemetry: deployment success, reliability, time to value</span><a href="#r1">1 · Deploy</a><span>Anti-spam: complaints -20%; capacity modeling</span></div>
+      <div class="cov__row"><span>Hardware, software and ecosystem partners: compatibility, validation</span><a href="#r3">3 · Partners</a><span>Smarsh Archive and Mavenir integration designs; AT&amp;T beta trials</span></div>
+      <div class="cov__row"><span>Launch readiness with marketing, sales, support</span><a href="#r5">5 · Roadmap</a><span>Voicemail AI launch and user migration; DIGITS work with marketing</span></div>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer class="foot">
+  <div class="wrap foot__in">
+    <p><b>Fleet Pulse</b> is a product concept by Jim Chao for the Senior Product Manager (Azure Local) application, job 200068532. Every cluster, partner, release and number on this page is synthetic. It is not Microsoft production data and not T-Mobile production data.</p>
+    <a class="btn-ghost" href="#top">Back to top</a>
+  </div>
+</footer>
+
+<!-- Libraries: exact versions from cdnjs / jsDelivr, with a self-hosted copy if the CDN is unreachable -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js"></script>
+<script>window.gsap||document.write('<script src="assets/vendor/gsap.min.js?v=1"><\/script>')</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/ScrollTrigger.min.js"></script>
+<script>window.ScrollTrigger||document.write('<script src="assets/vendor/ScrollTrigger.min.js?v=1"><\/script>')</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/SplitText.min.js"></script>
+<script>window.SplitText||document.write('<script src="assets/vendor/SplitText.min.js?v=1"><\/script>')</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/Flip.min.js"></script>
+<script>window.Flip||document.write('<script src="assets/vendor/Flip.min.js?v=1"><\/script>')</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.2/anime.min.js"></script>
+<script>window.anime||document.write('<script src="assets/vendor/anime.min.js?v=1"><\/script>')</script>
+<script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js"></script>
+<script>window.Lenis||document.write('<script src="assets/vendor/lenis.min.js?v=1"><\/script>')</script>
+<script src="https://cdn.jsdelivr.net/npm/motion@11.11.13/dist/motion.js"></script>
+<script>window.Motion||document.write('<script src="assets/vendor/motion.min.js?v=1"><\/script>')</script>
+<script src="assets/js/audio.js?v=1"></script>
+<script src="assets/js/app.js?v=1"></script>
+</body>
+</html>
