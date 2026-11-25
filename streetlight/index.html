@@ -1,0 +1,471 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shared Metrics Foundation · Concept</title>
+<meta name="description" content="Shared Metrics Foundation: Data Trust and Agent Context Console. Independent concept by Jim Chao with synthetic data. Not affiliated with or endorsed by Jacobs or StreetLight.">
+<meta name="theme-color" content="#081014">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=Fira+Code:wght@400;500;600&family=Fira+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/site.css?v=1">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23081014'/%3E%3Cpath d='M5 24 C12 20 14 10 27 7' stroke='%232dd4bf' stroke-width='3' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='27' cy='7' r='3' fill='%23ff8a3d'/%3E%3C/svg%3E">
+</head>
+<body class="is-intro">
+<a class="skip" href="#main">Skip to content</a>
+
+<!-- ================= OPENING ================= -->
+<div class="intro" id="intro" role="dialog" aria-modal="true" aria-labelledby="introTitle">
+  <div class="intro__bar intro__bar--top"></div>
+  <div class="intro__bar intro__bar--bot"></div>
+  <canvas class="intro__canvas" id="introCanvas" aria-hidden="true"></canvas>
+  <div class="intro__grain" aria-hidden="true"></div>
+  <div class="intro__chips" id="introChips" aria-hidden="true"></div>
+
+  <div class="intro__center">
+    <p class="intro__kicker"><span class="dot"></span>Independent concept by Jim Chao · synthetic data</p>
+    <h1 class="intro__title" id="introTitle">
+      <span class="intro__line" data-scramble="Three products.">Three products.</span>
+      <span class="intro__line" data-scramble="Three answers for one road.">Three answers for one road.</span>
+      <span class="intro__line intro__line--accent">One <em>trusted</em> metric.</span>
+    </h1>
+    <button class="btn-enter" id="enterBtn" type="button">
+      <span class="btn-enter__ring" aria-hidden="true"></span>
+      <span class="btn-enter__label">Enter the concept</span>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <p class="intro__hint">Plays a 25-second story with narration and ambient sound. Mute any time.</p>
+    <p class="intro__legal">Not affiliated with or endorsed by Jacobs or StreetLight.</p>
+  </div>
+
+  <div class="story" id="story" aria-live="polite" hidden>
+    <p class="story__kicker mono">The story · synthetic example</p>
+    <p class="story__text" id="storyText"></p>
+    <div class="story__id" id="storyId">
+      <div class="story__metric"><span class="mono">metric</span> <b id="storyMetric">aadt.v3</b> <span class="mono">trust</span> <b class="o" id="storyTrust">0.86</b></div>
+      <p class="story__caption">aadt.v3 is version 3 of the shared Average Annual Daily Traffic definition. 0.86 is its data-trust score out of 1.0 (coverage, freshness, bias).</p>
+    </div>
+    <button class="story__skip" id="storySkip" type="button">Skip story</button>
+  </div>
+
+  <div class="intro__answers" id="introAnswers" aria-hidden="true">
+    <div class="ans" data-k="0"><i>Traffic Counts</i><b>41,200</b><span>vehicles / day</span></div>
+    <div class="ans" data-k="1"><i>Safety</i><b>38,900</b><span>vehicles / day</span></div>
+    <div class="ans" data-k="2"><i>Construction Impact</i><b>44,700</b><span>vehicles / day</span></div>
+    <div class="ans ans--gold" data-k="3"><i>Shared · aadt.v3</i><b>42,180</b><span>trust 0.86</span></div>
+  </div>
+  <button class="intro__skip" id="skipBtn" type="button">Enter without sound</button>
+</div>
+
+<!-- ================= SOUND DOCK ================= -->
+<div class="dock" id="dock" aria-label="Sound controls">
+  <button class="dock__btn" id="musicBtn" type="button" aria-pressed="false" aria-label="Ambient music">
+    <span class="eq" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+    <span class="dock__txt">Music <b>off</b></span>
+  </button>
+  <button class="dock__btn" id="voiceBtn" type="button" aria-pressed="false" aria-label="Narration">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3Zm7 9a7 7 0 0 1-14 0M12 19v2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+    <span class="dock__txt">Voice <b>off</b></span>
+  </button>
+  <button class="dock__btn dock__btn--icon" id="replayIntro" type="button" aria-label="Replay the opening">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.4-5.7M4 4v4h4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </button>
+</div>
+
+<!-- ================= NAV ================= -->
+<header class="nav">
+  <a class="brand" href="#top" aria-label="Back to top">
+    <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M4 25 C12 21 14 10 28 6" stroke="currentColor" stroke-width="2.6" fill="none" stroke-linecap="round"/><circle cx="28" cy="6" r="3" fill="var(--sig)"/></svg>
+    <span>Shared Metrics Foundation</span>
+  </a>
+  <nav class="rail" aria-label="Sections">
+    <a href="#r1" data-rail="r1"><b>1</b>Platform</a>
+    <a href="#r2" data-rail="r2"><b>2</b>Data trust</a>
+    <a href="#r3" data-rail="r3"><b>3</b>Architecture</a>
+    <a href="#r4" data-rail="r4"><b>4</b>Agent</a>
+    <a href="#r5" data-rail="r5"><b>5</b>Delivery</a>
+    <a href="#why" data-rail="why"><b>J</b>Why Jim</a>
+  </nav>
+  <span class="nav__tag">Concept · synthetic data</span>
+  <i class="nav__progress" id="navProgress"></i>
+</header>
+
+<main id="main">
+<!-- ================= HERO ================= -->
+<section class="hero" id="top" data-narrate="intro">
+  <div class="hero__spot" aria-hidden="true"></div>
+  <canvas class="hero__map" id="heroMap" aria-hidden="true"></canvas>
+  <div class="wrap hero__grid">
+    <div class="hero__copy">
+      <p class="label-pill"><span class="dot"></span>Independent concept by Jim Chao · synthetic data</p>
+      <h2 class="hero__title" id="heroTitle">One governed metric.<br><span class="shiny">Every product, every agent.</span></h2>
+      <p class="hero__lede">A platform-and-data concept built around one job description: a shared metric layer, a trust layer for third-party location data, and permission-aware context for AI agents, so every product gives a customer the same defensible answer.</p>
+      <div class="hero__cta">
+        <a class="btn-uv" href="#r1"><span>Walk the five requirements</span></a>
+        <a class="btn-ghost" href="#map">Jump to the JD coverage map</a>
+      </div>
+    </div>
+    <div class="hero__stats">
+      <div class="stat card-fx"><b data-count="3">0</b><span>product views reuse one definition</span></div>
+      <div class="stat card-fx"><b data-count="3">0</b><span>made-up data partners scored for trust</span></div>
+      <div class="stat card-fx"><b data-count="0.86" data-dec="2">0</b><span>trust score of the shared AADT metric (0 to 1)</span></div>
+      <div class="stat card-fx"><b data-count="48">0</b><span>golden questions in the agent evaluation set</span></div>
+    </div>
+  </div>
+  <div class="wrap marq" aria-hidden="true">
+    <div class="marq__row"><span>shared metric layer</span><span>data trust</span><span>coverage</span><span>freshness</span><span>bias flags</span><span>entitlements</span><span>agent context</span><span>evaluation</span><span>migration</span><span>adoption &amp; reuse</span></div>
+  </div>
+</section>
+
+<!-- ================= R1: PLATFORM OWNERSHIP ================= -->
+<section class="req" id="r1" data-narrate="r1">
+  <div class="wrap">
+    <header class="req__head">
+      <p class="req__tag"><span>Requirement 1</span> Product ownership of a shared platform</p>
+      <h2 class="req__title split">A platform roadmap that product teams can plan against.</h2>
+      <p class="req__jd"><b>JD:</b> "Experience: 7+ years in product management, including significant ownership of enterprise platform, data, or other complex B2B products."</p>
+    </header>
+
+    <div class="vision card-fx">
+      <p class="eyebrow mono">Platform vision</p>
+      <p class="vision__text">Every product and every agent reads the <em>same</em> governed metric, knows how far to trust it, and only sees what the customer is entitled to. New analytics ship in days, not quarters.</p>
+      <ul class="vision__goals">
+        <li><b>Usability</b> same number in every view</li>
+        <li><b>Growth</b> new products start on shared metrics</li>
+        <li><b>Delivery</b> one pipeline instead of seven</li>
+        <li><b>Value</b> fewer "numbers don't match" escalations</li>
+      </ul>
+    </div>
+
+    <div class="roadmap">
+      <div class="lane card-fx" data-lane="now">
+        <header><b>Now</b><span>next two quarters</span></header>
+        <article><h4>Governed metric layer v1</h4><p>aadt.v3 and vmt.v2 defined once, versioned, served by one API.</p></article>
+        <article><h4>Data-trust scoring</h4><p>Coverage, freshness and bias for three partners, shown next to every number.</p></article>
+        <article><h4>Traffic Counts migrates</h4><p>First product moves after four weeks of dual-run parity.</p></article>
+      </div>
+      <div class="lane card-fx" data-lane="next">
+        <header><b>Next</b><span>quarters three and four</span></header>
+        <article><h4>Entitlements in the metric API</h4><p>Workspace, geography and partner-license checks in one place.</p></article>
+        <article><h4>Agent context API</h4><p>Agents call governed metrics as tools and must cite them.</p></article>
+        <article><h4>Safety and Construction Impact migrate</h4><p>Remaining views drop their private copies of AADT.</p></article>
+      </div>
+      <div class="lane card-fx" data-lane="later">
+        <header><b>Later</b><span>next year</span></header>
+        <article><h4>Self-serve metric authoring</h4><p>Product teams propose definitions; platform reviews and versions them.</p></article>
+        <article><h4>Shared evaluation harness</h4><p>Every AI use case reuses golden sets and ship gates.</p></article>
+        <article><h4>Near-real-time tier</h4><p>Hourly freshness where a customer workflow needs it.</p></article>
+      </div>
+    </div>
+
+    <div class="prio card-fx" data-notilt>
+      <div class="prio__head">
+        <div>
+          <p class="eyebrow mono">Prioritisation across product teams</p>
+          <h3>26 engineering-weeks this half. Seven asks. Pick a lens.</h3>
+          <p class="cap">Synthetic asks from four product teams. Effort in engineering-weeks; the line is capacity.</p>
+        </div>
+        <div class="seg" role="radiogroup" aria-label="Prioritisation lens">
+          <button type="button" role="radio" aria-checked="true" data-lens="trust">Customer trust</button>
+          <button type="button" role="radio" aria-checked="false" data-lens="speed">Delivery speed</button>
+          <button type="button" role="radio" aria-checked="false" data-lens="ai">AI readiness</button>
+        </div>
+      </div>
+      <ol class="prio__list" id="prioList"></ol>
+      <p class="prio__verdict" id="prioVerdict"></p>
+    </div>
+  </div>
+</section>
+
+<!-- ================= R2: SHARED PLATFORM & DATA ================= -->
+<section class="req" id="r2" data-narrate="r2">
+  <div class="wrap">
+    <header class="req__head">
+      <p class="req__tag"><span>Requirement 2</span> Shared platform and data capabilities</p>
+      <h2 class="req__title split">Define a metric once. Show how far to trust it.</h2>
+      <p class="req__jd"><b>JD:</b> "Experience defining and delivering shared platform or data capabilities that support multiple products or customer workflows. Understanding of third-party data quality, coverage, and limitations."</p>
+    </header>
+
+    <div class="reuse">
+      <div class="def card-fx" id="defCard">
+        <p class="eyebrow mono">Shared definition</p>
+        <div class="def__tabs" role="tablist" aria-label="Metric definitions">
+          <button role="tab" aria-selected="true" data-def="aadt">aadt.v3</button>
+          <button role="tab" aria-selected="false" data-def="vmt">vmt.v2</button>
+          <button role="tab" aria-selected="false" data-def="od">od.v1</button>
+        </div>
+        <div class="def__body" id="defBody"></div>
+        <p class="cap">The suffix is the definition version. A change ships as v4 beside v3, so no product's numbers move without notice.</p>
+      </div>
+      <svg class="reuse__beams" id="reuseBeams" aria-hidden="true"></svg>
+      <div class="views">
+        <div class="view card-fx" data-view="0"><i>Traffic Counts</i><b data-vnum>42,180</b><span>AADT on R9-14 · Q3</span><em class="uses">uses <code>aadt.v3</code></em></div>
+        <div class="view card-fx" data-view="1"><i>Safety</i><b data-vnum>42,180</b><span>crash rate denominator</span><em class="uses">uses <code>aadt.v3</code></em></div>
+        <div class="view card-fx" data-view="2"><i>Construction Impact</i><b data-vnum>42,180</b><span>baseline before closure</span><em class="uses">uses <code>aadt.v3</code></em></div>
+      </div>
+    </div>
+    <p class="cap cap--c">R9-14 means Route 9, segment 14 on a fictional county road network. All three views now print the same number because they call the same definition.</p>
+
+    <div class="trust">
+      <div class="trust__head">
+        <div>
+          <p class="eyebrow mono">Data-trust layer · three made-up partners</p>
+          <h3>Coverage, freshness, bias and quality, next to every number.</h3>
+        </div>
+        <label class="tgl"><input type="checkbox" id="limitsTgl"><span class="tgl__track"><i></i></span><span>Show limitations</span></label>
+      </div>
+      <div class="partners" id="partners"></div>
+
+      <div class="cover card-fx" data-notilt>
+        <div class="cover__side">
+          <p class="eyebrow mono">Segment coverage · Alder County (fictional)</p>
+          <div class="seg seg--sm" role="radiogroup" aria-label="Partner layer">
+            <button type="button" role="radio" aria-checked="true" data-layer="blend">Blended</button>
+            <button type="button" role="radio" aria-checked="false" data-layer="0">Vela</button>
+            <button type="button" role="radio" aria-checked="false" data-layer="1">Orbit</button>
+            <button type="button" role="radio" aria-checked="false" data-layer="2">Haulpath</button>
+          </div>
+          <label class="range">
+            <span>Publish threshold <b id="thrVal">0.70</b></span>
+            <input type="range" id="thr" min="0.4" max="0.9" step="0.05" value="0.7" aria-label="Trust threshold to publish a segment metric">
+          </label>
+          <div class="cover__nums">
+            <div><b id="pubCount">0</b><span>segments published</span></div>
+            <div><b id="wdCount">0</b><span>withheld with a reason</span></div>
+          </div>
+          <div class="legend"><span><i class="lg lg--hi"></i>publishable</span><span><i class="lg lg--mid"></i>near threshold</span><span><i class="lg lg--lo"></i>withheld (dashed)</span></div>
+          <p class="cap">A metric is published only where blended trust clears the threshold. Withheld segments say why, instead of showing a confident wrong number.</p>
+        </div>
+        <svg class="cover__map" id="coverMap" viewBox="0 0 600 380" role="img" aria-label="Fictional road network colored by data-trust score"></svg>
+        <div class="cover__tip mono" id="coverTip" hidden></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= R3: TECHNICAL FLUENCY ================= -->
+<section class="req" id="r3" data-narrate="r3">
+  <div class="wrap">
+    <header class="req__head">
+      <p class="req__tag"><span>Requirement 3</span> Technical fluency</p>
+      <h2 class="req__title split">Click through the platform. Then read the trade-offs.</h2>
+      <p class="req__jd"><b>JD:</b> "Strong understanding of platform architecture, APIs, data flows, integrations, and permissions; able to evaluate architectural trade-offs with Engineering."</p>
+    </header>
+
+    <div class="arch card-fx" data-notilt>
+      <div class="arch__flow" id="archFlow">
+        <svg class="arch__lines" id="archLines" aria-hidden="true"></svg>
+        <button class="node" data-node="src" type="button"><i>01</i><b>Sources</b><span>3 partners + counters</span></button>
+        <button class="node" data-node="ing" type="button"><i>02</i><b>Ingestion &amp; APIs</b><span>adapters · validation</span></button>
+        <button class="node" data-node="trust" type="button"><i>03</i><b>Trust scoring</b><span>coverage · freshness · bias</span></button>
+        <button class="node" data-node="metric" type="button"><i>04</i><b>Metric layer</b><span>versioned definitions</span></button>
+        <button class="node" data-node="perm" type="button"><i>05</i><b>Permissions</b><span>entitlements · audit</span></button>
+        <div class="node-pair">
+          <button class="node node--ui" data-node="ui" type="button"><i>06</i><b>Product UIs</b><span>3 views</span></button>
+          <button class="node node--agent" data-node="agent" type="button"><i>07</i><b>Agent</b><span>tools + citations</span></button>
+        </div>
+      </div>
+      <div class="arch__detail" id="archDetail" aria-live="polite"></div>
+    </div>
+
+    <div class="adr">
+      <div class="adr__tabs" role="tablist" aria-label="Decision records">
+        <button role="tab" aria-selected="true" data-adr="0"><i>ADR-007</i>Precompute or on demand?</button>
+        <button role="tab" aria-selected="false" data-adr="1"><i>ADR-012</i>Where do permissions live?</button>
+        <button role="tab" aria-selected="false" data-adr="2"><i>ADR-015</i>How does the agent reach data?</button>
+      </div>
+      <p class="cap">ADR = architecture decision record, numbered in the order decisions were made. Figures are synthetic estimates.</p>
+      <div class="adr__body card-fx" data-notilt id="adrBody"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= R4: AI PRODUCT FUNDAMENTALS ================= -->
+<section class="req" id="r4" data-narrate="r4">
+  <div class="wrap">
+    <header class="req__head">
+      <p class="req__tag"><span>Requirement 4</span> AI product fundamentals</p>
+      <h2 class="req__title split">An agent that cites its metric and knows what you may see.</h2>
+      <p class="req__jd"><b>JD:</b> "Experience working on AI-enabled products or platforms, with an understanding of the data, context, access controls, evaluation, and quality needed for trustworthy customer experiences."</p>
+    </header>
+
+    <div class="agent">
+      <div class="chat card-fx" data-notilt>
+        <div class="chat__bar">
+          <div class="who">
+            <span class="mono">Signed in as</span>
+            <div class="seg seg--sm" role="radiogroup" aria-label="Workspace role">
+              <button type="button" role="radio" aria-checked="true" data-role="planner">City planner</button>
+              <button type="button" role="radio" aria-checked="false" data-role="freight">Freight analyst</button>
+            </div>
+          </div>
+          <span class="scope mono" id="scopeTag">scope: Alder County · public roads · Vela + Orbit</span>
+        </div>
+        <div class="chat__log" id="chatLog" aria-live="polite">
+          <div class="msg msg--bot"><p>Ask me about traffic on the fictional Alder County network. I answer only from governed metrics, cite them, and stay inside your entitlements.</p></div>
+        </div>
+        <div class="chat__qs" id="chatQs">
+          <button type="button" data-q="q1">What was AADT on R9-14 in Q3?</button>
+          <button type="button" data-q="q2">How did VMT change after the Mill St closure?</button>
+          <button type="button" data-q="q4">What is AADT on Pine Hollow Rd (R2-07)?</button>
+          <button type="button" data-q="q3">Show raw fleet traces for trucks on I-5.</button>
+        </div>
+        <p class="cap">AADT = average annual daily traffic. VMT = vehicle miles traveled. Answers are scripted from synthetic data to show behaviour, not a live model.</p>
+      </div>
+
+      <div class="evals card-fx" data-notilt>
+        <p class="eyebrow mono">Evaluation scorecard · golden set</p>
+        <h3>48 questions, run before every release.</h3>
+        <ul class="evals__list" id="evalList"></ul>
+        <div class="gate"><span class="gate__dot"></span><p><b>Ship gate:</b> accuracy at or above 95% and permission handling at 100%. A single wrong refusal or leak blocks release.</p></div>
+        <p class="cap">Synthetic results. "Golden set" = fixed questions with known correct answers, owned by the platform and reused by every AI use case.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= R5: DELIVERY ================= -->
+<section class="req" id="r5" data-narrate="r5">
+  <div class="wrap">
+    <header class="req__head">
+      <p class="req__tag"><span>Requirement 5</span> Delivery and product judgment</p>
+      <h2 class="req__title split">Move existing workflows without breaking a customer's numbers.</h2>
+      <p class="req__jd"><b>JD:</b> "Proven track record of delivering complex platform initiatives across teams, managing dependencies and risks, and making sound customer, business, scope, timing, and resource trade-offs."</p>
+    </header>
+  </div>
+
+  <div class="mig" id="migWrap">
+    <div class="mig__track" id="migTrack">
+      <article class="wave card-fx" data-wave="0">
+        <header><i>Wave 0</i><span>weeks 1 to 6</span></header>
+        <h3>Foundations</h3>
+        <p>Metric layer, trust scoring and a parity harness that replays legacy queries.</p>
+        <ul><li><b>Exit</b> aadt.v3 within ±2% of legacy on 500 benchmark segments</li><li><b>Depends on</b> partner schema contracts</li></ul>
+        <div class="wave__bar"><i style="--p:1"></i></div>
+      </article>
+      <article class="wave card-fx" data-wave="1">
+        <header><i>Wave 1</i><span>weeks 5 to 12</span></header>
+        <h3>Traffic Counts</h3>
+        <p>Shadow mode, four weeks of dual-run, then cutover with a "what changed" note in the product.</p>
+        <ul><li><b>Exit</b> zero unexplained differences above 2%</li><li><b>Risk</b> customers see numbers shift; release notes and a side-by-side view</li></ul>
+        <div class="wave__bar"><i style="--p:.8"></i></div>
+      </article>
+      <article class="wave card-fx" data-wave="2">
+        <header><i>Wave 2</i><span>weeks 10 to 18</span></header>
+        <h3>Safety</h3>
+        <p>Crash-rate denominators switch to aadt.v3; entitlements move into the metric API.</p>
+        <ul><li><b>Depends on</b> entitlements service</li><li><b>Risk</b> crash-data join keys differ; mapping table owned by platform</li></ul>
+        <div class="wave__bar"><i style="--p:.45"></i></div>
+      </article>
+      <article class="wave card-fx" data-wave="3">
+        <header><i>Wave 3</i><span>weeks 16 to 24</span></header>
+        <h3>Construction Impact</h3>
+        <p>Custom zones use the on-demand path from ADR-007; event calendar becomes a shared input.</p>
+        <ul><li><b>Depends on</b> on-demand compute budget</li><li><b>Risk</b> cost spikes on large zones; per-query cap and cache</li></ul>
+        <div class="wave__bar"><i style="--p:.2"></i></div>
+      </article>
+      <article class="wave card-fx" data-wave="4">
+        <header><i>Wave 4</i><span>weeks 22 to 30</span></header>
+        <h3>Agent GA, retire legacy</h3>
+        <p>Agent passes the evaluation gate; six legacy pipelines are switched off with owners' sign-off.</p>
+        <ul><li><b>Exit</b> eval gate green two releases in a row</li><li><b>Risk</b> a team keeps its copy; retirement date agreed up front</li></ul>
+        <div class="wave__bar"><i style="--p:.05"></i></div>
+      </article>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="r5grid">
+      <div class="risks card-fx" data-notilt>
+        <p class="eyebrow mono">Dependencies and risks</p>
+        <ul class="risk-list">
+          <li><span class="sev sev--h">High</span><div><b>Partner contract renewal mid-plan</b><p>Orbit's terms renew in week 14. Mitigation: trust layer already scores a fallback blend without it.</p></div></li>
+          <li><span class="sev sev--h">High</span><div><b>Visible number shifts</b><p>Customers notice. Mitigation: dual-run, "what changed" panel, customer success briefed one wave ahead.</p></div></li>
+          <li><span class="sev sev--m">Med</span><div><b>Shared engineering capacity</b><p>Safety's own roadmap competes for the same team. Mitigation: Wave 2 scope agreed with its PM at planning.</p></div></li>
+          <li><span class="sev sev--m">Med</span><div><b>Agent quality regressions</b><p>Model or prompt changes. Mitigation: golden set runs on every release; gate blocks.</p></div></li>
+        </ul>
+      </div>
+      <div class="score card-fx" data-notilt>
+        <p class="eyebrow mono">Adoption and reuse scorecard · targets</p>
+        <div class="score__grid">
+          <div class="kpi"><span>Products on shared metrics</span><b><em>1</em> → <strong data-count="3">0</strong><small>/3</small></b></div>
+          <div class="kpi"><span>Consumers per definition</span><b><em>1.0</em> → <strong data-count="3.4" data-dec="1">0</strong></b></div>
+          <div class="kpi"><span>Duplicate AADT pipelines</span><b><em>7</em> → <strong data-count="1">0</strong></b></div>
+          <div class="kpi"><span>Time to ship a new metric</span><b><em>6 wk</em> → <strong data-count="8">0</strong><small> days</small></b></div>
+          <div class="kpi"><span>Freshness SLA met</span><b><em>91%</em> → <strong data-count="99" data-suffix="%">0</strong></b></div>
+          <div class="kpi"><span>Agent answers with a citation</span><b><em>n/a</em> → <strong data-count="100" data-suffix="%">0</strong></b></div>
+        </div>
+        <p class="cap">Synthetic baselines and targets for this concept. The platform is measured on adoption and outcomes, not on shipping the pipes.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= WHY JIM ================= -->
+<section class="why" id="why" data-narrate="why">
+  <div class="wrap">
+    <header class="why__head">
+      <p class="req__tag"><span>Why Jim</span> Real experience behind the concept</p>
+      <h2 class="req__title split">Thirteen years as a platform product owner, at carrier scale.</h2>
+      <div class="who-card card-fx">
+        <div class="avatar" aria-hidden="true">JC</div>
+        <div>
+          <b>Jim Chao</b>
+          <p>Principal Engineer / Technical Product Owner, System Architecture, T-Mobile · Feb 2013 to Apr 2026</p>
+          <p class="muted">15+ years in carrier messaging platforms. The proof below is real work; the console above is an independent concept with synthetic data.</p>
+        </div>
+      </div>
+    </header>
+
+    <div class="proofs">
+      <article class="proof card-fx"><i>Req 1 · Platform ownership</i><h3>Message Store, the shared platform behind DIGITS and eDIGITS</h3><p>Owned Message Store product definition, the message-storage roadmap and managed deployment. Translated business needs into system requirements and directed the vendor implementation.</p></article>
+      <article class="proof card-fx"><i>Req 2 · Shared data capabilities</i><h3>Retention rules enforced in the platform</h3><p>Defined regulatory retention policies for DIGITS message storage: seven days for SMS and MMS, 30 days for voicemail, enforced in the platform rather than in each client. Built the Message Store's operational dashboard.</p></article>
+      <article class="proof card-fx"><i>Req 3 · APIs and trade-offs</i><h3>APIs, Smarsh integration, cold storage <span class="big" data-count="30" data-prefix="-" data-suffix="%">0</span></h3><p>Created the original partner API integration design for Smarsh Archive; changed web-to-storage call flows to cut API calls. Used TTL capacity modeling and a POC to weigh slower retrieval, then cut the relevant data-center footprint 30%.</p></article>
+      <article class="proof card-fx"><i>Req 4 · AI evaluation and quality</i><h3>AWS voicemail AI and ML anti-spam</h3><p>Led a five-vendor evaluation on accuracy, cost and integration: transcription and translation OPEX about <b>-60%</b>, accuracy about <b>+30%</b>. Kubernetes ML anti-spam on billions of messages a month: spam complaints <b>-20%</b>.</p></article>
+      <article class="proof card-fx"><i>Req 5 · Delivery across teams</i><h3>Launch and user migration, on time and within budget</h3><p>Coordinated engineering, vendors and device integration for voicemail AI through production launch and user migration, with executive cost reviews. Took cold storage through production readiness with minimal reported user impact.</p></article>
+    </div>
+    <p class="cap cap--c">Honest gaps: no transportation or location-data job history, and no production LLM agents at work. This concept shows how he would think about both.</p>
+  </div>
+</section>
+
+<!-- ================= JD COVERAGE MAP ================= -->
+<section class="map" id="map">
+  <div class="wrap">
+    <header class="req__head">
+      <p class="req__tag"><span>JD coverage map</span> Requirement → concept → evidence</p>
+      <h2 class="req__title split">Every requirement, where it is shown, and what backs it.</h2>
+    </header>
+    <div class="cov card-fx" data-notilt>
+      <div class="cov__row cov__row--h"><span>JD requirement</span><span>Shown in this concept</span><span>Jim's real evidence</span><span>Fit</span></div>
+      <div class="cov__row"><span><b>1</b> Platform product ownership</span><span>Vision, Now / Next / Later roadmap, lens-based prioritisation</span><span>Owned Message Store definition, roadmap and deployment</span><span class="fit fit--s">Strong</span></div>
+      <div class="cov__row"><span><b>2</b> Shared platform &amp; data</span><span>One definition reused by three views; trust layer for three partners</span><span>Shared platform behind DIGITS / eDIGITS; platform-enforced retention</span><span class="fit fit--s">Strong</span></div>
+      <div class="cov__row"><span><b>2b</b> Third-party data quality</span><span>Coverage, freshness, bias, publish threshold</span><span>Five-vendor quality evaluation (analog, not location data)</span><span class="fit fit--p">Partial</span></div>
+      <div class="cov__row"><span><b>3</b> Technical fluency</span><span>Clickable architecture; three decision records</span><span>Smarsh API design, call-flow redesign, TTL modeling + POC</span><span class="fit fit--s">Strong</span></div>
+      <div class="cov__row"><span><b>4</b> AI product fundamentals</span><span>Cited answers, permission refusal, low-trust warning, eval gate</span><span>Voicemail AI evaluation (-60% OPEX, +30% accuracy); ML anti-spam</span><span class="fit fit--s">Strong</span></div>
+      <div class="cov__row"><span><b>5</b> Delivery &amp; judgment</span><span>Five-wave migration, risks, adoption and reuse scorecard</span><span>Voicemail AI launch and migration on time and budget; cold storage</span><span class="fit fit--s">Strong</span></div>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer class="foot">
+  <div class="wrap foot__in">
+    <p><b>Shared Metrics Foundation</b> · Data Trust &amp; Agent Context Console</p>
+    <p>Independent concept by Jim Chao · synthetic data. Partners, roads, numbers and results are made up. Not affiliated with or endorsed by Jacobs or StreetLight, and not T-Mobile production work.</p>
+    <a class="btn-ghost" href="#top">Back to top</a>
+  </div>
+</footer>
+
+<script src="assets/vendor/gsap.min.js?v=1"></script>
+<script src="assets/vendor/ScrollTrigger.min.js?v=1"></script>
+<script src="assets/vendor/SplitText.min.js?v=1"></script>
+<script src="assets/vendor/Flip.min.js?v=1"></script>
+<script src="assets/vendor/Draggable.min.js?v=1"></script>
+<script src="assets/vendor/anime.min.js?v=1"></script>
+<script src="assets/vendor/motion.min.js?v=1"></script>
+<script src="assets/vendor/lenis.min.js?v=1"></script>
+<script src="assets/js/audio.js?v=1"></script>
+<script src="assets/js/app.js?v=1"></script>
+</body>
+</html>
