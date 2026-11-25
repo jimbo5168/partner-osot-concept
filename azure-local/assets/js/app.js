@@ -151,20 +151,20 @@
     chipEls.forEach((el, i) => gsap.to(el, { x: el.__x + (i % 2 ? 18 : -18), y: el.__y + (i % 3 ? -12 : 12), duration: 3 + i * 0.2, yoyo: true, repeat: -1, ease: 'sine.inOut' }));
   }
 
-  /* ---- Opening story (~30 s placeholder). Words type in sync with narration clip "story".
+  /* ---- Opening story (~35.5 s, timed to story.mp3). Words type in sync with narration clip "story".
      RETIME HERE once story.mp3 exists: t = when the phrase starts, e = when it ends (seconds from clip start).
      While the clip plays the page follows the clip's own clock (audio.currentTime), so only these marks need editing. ---- */
   const STORY = [
-    { t: 0.2, e: 5.3, txt: 'Friday, 6 p.m. A retailer deploys a new two-node cluster in store 214.' },
-    { t: 5.5, e: 10.0, txt: 'Two hours later, it stops at step 7 of 12: network validation.', hl: true },
-    { t: 10.2, e: 13.8, txt: 'The network adapter driver is not the validated version.' },
-    { t: 14.0, e: 20.2, txt: "Across 1,240 clusters in this synthetic fleet, the same failure hides in one hardware partner's corner." },
-    { t: 20.4, e: 24.4, txt: 'A fleet view makes it visible: first-attempt deployment success, 91 percent.' },
-    { t: 24.6, e: 29.8, txt: 'One fix, a driver and firmware pre-check before step 7, lifts it toward 96.', hl: true }
+    { t: 0.33, e: 7.06, txt: 'Friday, 6 p.m. A retailer deploys a new two-node cluster in store 214.' },
+    { t: 7.72, e: 12.66, txt: 'Two hours later, it stops at step 7 of 12: network validation.', hl: true },
+    { t: 13.21, e: 16.11, txt: 'The network adapter driver is not the validated version.' },
+    { t: 16.76, e: 23.59, txt: "Across 1,240 clusters in this synthetic fleet, the same failure hides in one hardware partner's corner." },
+    { t: 23.95, e: 29.27, txt: 'A fleet view makes it visible: first-attempt deployment success, 91 percent.' },
+    { t: 29.76, e: 35.29, txt: 'One fix, a driver and firmware pre-check before step 7, lifts it toward 96.', hl: true }
   ];
-  const STORY_END = 30.4;
+  const STORY_END = 35.8;
   // Visual cues, in seconds of the same clip. Move them with the phrases above.
-  const CUE = { focus: 3.6, card0: 5.6, steps: 5.9, stepFail: 8.8, card1: 10.6, lit: 14.3, fail: 17.0, card2: 18.4, merge: 20.9, id: 22.6, fix: 26.6 };
+  const CUE = { focus: 5.1, card0: 7.85, steps: 8.2, stepFail: 10.9, card1: 13.4, lit: 17.1, fail: 20.1, card2: 21.7, merge: 24.6, id: 27.9, fix: 31.8 };
   const storyEl = $('#story'), storyText = $('#storyText');
   const words = [];
   STORY.forEach(seg => {
